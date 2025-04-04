@@ -1,5 +1,5 @@
 defmodule Checkout do
-  @prices_in_pennies %{
+  @flat_prices_in_pennies %{
     GR1: 311,
     SR1: 500,
     CF1: 1123
@@ -7,15 +7,14 @@ defmodule Checkout do
   @buy_1_get_1_free_products [:GR1]
   @bulk_pricing_rules %{
     :SR1 => {3, 450},
-    :CF1 => {3, 1123 / 3 * 2}
+    :CF1 => {3, @flat_prices_in_pennies[:CF1] * 2 / 3}
   }
 
   def checkout([]), do: 0
 
   def checkout(products) do
-    grouped_products = Enum.frequencies(products)
-
-    grouped_products
+    products
+    |> Enum.frequencies()
     |> Enum.map(fn {product, quantity} ->
       calculate_product_price(product, quantity)
     end)
@@ -24,7 +23,7 @@ defmodule Checkout do
   end
 
   defp calculate_product_price(product, quantity) do
-    price = @prices_in_pennies[product]
+    price = @flat_prices_in_pennies[product]
 
     if product in @buy_1_get_1_free_products do
       quantity_to_charge = Float.ceil(quantity / 2)
@@ -41,7 +40,7 @@ defmodule Checkout do
         price
 
       _ ->
-        @prices_in_pennies[product]
+        @flat_prices_in_pennies[product]
     end
   end
 
