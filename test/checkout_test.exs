@@ -29,5 +29,33 @@ defmodule CheckoutTest do
       assert Checkout.checkout([:GR1, :GR1, :GR1, :GR1, :GR1]) == 9.33
       assert Checkout.checkout([:GR1, :GR1, :GR1, :GR1, :GR1, :GR1]) == 9.33
     end
+
+    test "applies bulk prices rule for SR1" do
+      quantity = Enum.random(3..10)
+      bulk_price = 450 / 100
+      assert Checkout.checkout(List.duplicate(:SR1, quantity)) == bulk_price * quantity
+    end
+
+    test "applies bulk prices rule for CF1" do
+      quantity = Enum.random(3..10)
+      bulk_price = 1123 * 2 / 3 / 100
+      assert Checkout.checkout(List.duplicate(:CF1, quantity)) == bulk_price * quantity
+    end
+
+    test "Basket: GR1,SR1,GR1,GR1,CF1" do
+      assert Checkout.checkout([:GR1, :SR1, :GR1, :GR1, :CF1]) == 22.45
+    end
+
+    test "Basket: GR1,GR1" do
+      assert Checkout.checkout([:GR1, :GR1]) == 3.11
+    end
+
+    test "Basket: SR1,SR1,GR1,SR1" do
+      assert Checkout.checkout([:SR1, :SR1, :GR1, :SR1]) == 16.61
+    end
+
+    test "Basket: GR1,CF1,SR1,CF1,CF1" do
+      assert Checkout.checkout([:GR1, :CF1, :SR1, :CF1, :CF1]) == 30.57
+    end
   end
 end
