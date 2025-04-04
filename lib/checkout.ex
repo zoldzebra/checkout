@@ -1,9 +1,9 @@
 defmodule Checkout do
   @moduledoc """
-  Handles checkout operations for products with various pricing rules.
+  Handles checkout operations for products with various pricing rules, with focus on flexibility of pricing rules.
   """
 
-  # Base product prices in pennies
+  # Base product prices in pennies (to prevent floating point precision issues)
   @base_prices %{
     GR1: 311,
     SR1: 500,
@@ -21,7 +21,7 @@ defmodule Checkout do
 
   @doc """
   Calculates the total price for a list of products.
-  Returns the total in pounds.
+  Returns the total.
   """
   def checkout([]), do: 0
 
