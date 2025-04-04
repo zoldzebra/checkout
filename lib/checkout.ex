@@ -1,18 +1,20 @@
 defmodule Checkout do
-  @moduledoc """
-  Documentation for `Checkout`.
-  """
+  @prices_in_pennies %{
+    GR1: 311,
+    SR1: 500,
+    CF1: 1123
+  }
 
-  @doc """
-  Hello world.
+  def checkout([]), do: 0
 
-  ## Examples
+  def checkout(items) do
+    items
+    |> Enum.map(&@prices_in_pennies[&1])
+    |> Enum.sum()
+    |> pennies_to_pounds()
+  end
 
-      iex> Checkout.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  defp pennies_to_pounds(pennies) do
+    pennies / 100
   end
 end
