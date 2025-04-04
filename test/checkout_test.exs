@@ -21,5 +21,13 @@ defmodule CheckoutTest do
     test "returns 19.34 for one GR1, one SR1 and one CF1" do
       assert Checkout.checkout([:GR1, :SR1, :CF1]) == 19.34
     end
+
+    test "applies buy-1-get-1-free pricing rule on GR1" do
+      assert Checkout.checkout([:GR1, :GR1]) == 3.11
+      assert Checkout.checkout([:GR1, :GR1, :GR1]) == 6.22
+      assert Checkout.checkout([:GR1, :GR1, :GR1, :GR1]) == 6.22
+      assert Checkout.checkout([:GR1, :GR1, :GR1, :GR1, :GR1]) == 9.33
+      assert Checkout.checkout([:GR1, :GR1, :GR1, :GR1, :GR1, :GR1]) == 9.33
+    end
   end
 end
