@@ -57,5 +57,11 @@ defmodule CheckoutTest do
     test "Basket: GR1,CF1,SR1,CF1,CF1" do
       assert Checkout.checkout([:GR1, :CF1, :SR1, :CF1, :CF1]) == 30.57
     end
+
+    test "Should discard unknown products from checkout" do
+      assert Checkout.checkout([:UNKNOWN]) == 0
+      assert Checkout.checkout([:GR1, :UNKNOWN]) == 3.11
+      assert Checkout.checkout([:SR1, :UNKNOWN, :CF1]) == 16.23
+    end
   end
 end

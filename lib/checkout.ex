@@ -11,7 +11,7 @@ defmodule Checkout do
   }
 
   # Products with buy-one-get-one-free discount
-  @buy_one_get_one_products [:GR1]
+  @buy_one_get_one_free_products [:GR1]
 
   # Bulk pricing rules - {minimum_quantity, price_in_pennies}
   @bulk_pricing_rules %{
@@ -27,6 +27,7 @@ defmodule Checkout do
 
   def checkout(products) do
     products
+    |> Enum.filter(&(&1 in Map.keys(@base_prices)))
     |> Enum.frequencies()
     |> calculate_total_price()
     |> pennies_to_pounds()
@@ -44,7 +45,7 @@ defmodule Checkout do
     base_price = @base_prices[product]
 
     cond do
-      product in @buy_one_get_one_products ->
+      product in @buy_one_get_one_free_products ->
         charged_quantity = Float.ceil(quantity / 2)
         charged_quantity * base_price
 
