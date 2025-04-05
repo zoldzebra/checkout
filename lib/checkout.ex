@@ -1,6 +1,7 @@
 defmodule Checkout do
   @moduledoc """
-  Handles checkout operations for products with various pricing rules, with focus on flexibility of pricing rules.
+  Handles checkout operations for products with various pricing rules,
+  with a modular approach to pricing strategies.
   """
 
   # Base product prices in pennies (to prevent floating point precision issues)
@@ -10,18 +11,16 @@ defmodule Checkout do
     CF1: 1123
   }
 
-  # Products with buy-one-get-one-free discount
-  @buy_one_get_one_free_products [:GR1]
-
-  # Bulk pricing rules - {minimum_quantity, price_in_pennies}
-  @bulk_pricing_rules %{
-    SR1: {3, 450},
-    CF1: {3, @base_prices[:CF1] * 2 / 3}
+  # Pricing strategy configuration
+  @pricing_strategies %{
+    GR1: {:buy_one_get_one_free, []},
+    SR1: {:bulk_discount, [min_quantity: 3, discounted_price: 450]},
+    CF1: {:bulk_discount, [min_quantity: 3, discount_percentage: 2 / 3]}
   }
 
   @doc """
   Calculates the total price for a list of products.
-  Returns the total.
+  Returns the total in pounds.
   """
   def checkout([]), do: 0
 
@@ -36,33 +35,54 @@ defmodule Checkout do
   @doc false
   defp calculate_total_price(product_quantities) do
     Enum.reduce(product_quantities, 0, fn {product, quantity}, total ->
-      total + calculate_total_price_for_product(product, quantity)
+      total + calculate_product_price(product, quantity)
     end)
   end
 
   @doc false
-  defp calculate_total_price_for_product(product, quantity) do
+  defp calculate_product_price(product, quantity) do
     base_price = @base_prices[product]
 
-    cond do
-      product in @buy_one_get_one_free_products ->
-        charged_quantity = Float.ceil(quantity / 2)
-        charged_quantity * base_price
+    case @pricing_strategies[product] do
+      {strategy, options} ->
+        apply_pricing_strategy(strategy, quantity, base_price, options)
 
-      bulk_price = use_bulk_price?(product, quantity) ->
-        quantity * bulk_price
-
-      true ->
+      nil ->
         quantity * base_price
     end
   end
 
+  # Pricing strategy implementations
+
   @doc false
-  defp use_bulk_price?(product, quantity) do
-    case @bulk_pricing_rules[product] do
-      {min_quantity, price} when quantity >= min_quantity -> price
-      _ -> false
+  defp apply_pricing_strategy(:buy_one_get_one_free, quantity, base_price, _options) do
+    charged_quantity = Float.ceil(quantity / 2)
+    charged_quantity * base_price
+  end
+
+  @doc false
+  defp apply_pricing_strategy(:bulk_discount, quantity, base_price, options) do
+    min_quantity = Keyword.get(options, :min_quantity, 0)
+
+    if quantity >= min_quantity do
+      cond do
+        discounted_price = Keyword.get(options, :discounted_price) ->
+          quantity * discounted_price
+
+        discount_percentage = Keyword.get(options, :discount_percentage) ->
+          quantity * (base_price * discount_percentage)
+
+        true ->
+          quantity * base_price
+      end
+    else
+      quantity * base_price
     end
+  end
+
+  @doc false
+  defp apply_pricing_strategy(_unknown_strategy, quantity, base_price, _options) do
+    quantity * base_price
   end
 
   @doc false
