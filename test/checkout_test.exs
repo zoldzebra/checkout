@@ -39,7 +39,17 @@ defmodule CheckoutTest do
     test "applies bulk prices rule for CF1" do
       quantity = Enum.random(3..10)
       bulk_price = 1123 * 2 / 3 / 100
-      assert Checkout.checkout(List.duplicate(:CF1, quantity)) == bulk_price * quantity
+
+      assert Checkout.checkout(List.duplicate(:CF1, quantity)) ==
+               Float.round(bulk_price * quantity, 2)
+    end
+
+    test "returns values rounded to 2 decimals" do
+      quantity = 7
+      bulk_price = 1123 * 2 / 3 / 100
+
+      assert Checkout.checkout(List.duplicate(:CF1, quantity)) ==
+               Float.round(bulk_price * quantity, 2)
     end
 
     test "Basket: GR1,SR1,GR1,GR1,CF1" do

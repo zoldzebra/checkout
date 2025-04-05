@@ -9,30 +9,32 @@ defmodule Checkout do
 
   @doc """
   Calculates the total price for a list of products.
-  Returns the total in pounds.
+  Returns the total as a float with 2 decimal places.
   """
-  def checkout([]), do: 0
+  def checkout([]), do: 0.00
 
   def checkout(products) do
     products
     |> Enum.filter(&ProductConfig.exists?/1)
     |> Enum.frequencies()
     |> calculate_total_price()
-    |> pennies_to_pounds()
   end
 
   @doc false
   defp calculate_total_price(product_quantities) do
-    Enum.reduce(product_quantities, 0, fn {product, quantity}, total ->
-      total + calculate_product_price(product, quantity)
+    Enum.reduce(product_quantities, Decimal.new(0), fn {product, quantity}, total ->
+      product_price = calculate_product_price(product, quantity)
+      Decimal.add(total, product_price)
     end)
+    |> Decimal.round(2)
+    |> Decimal.to_float()
   end
 
   @doc false
   defp calculate_product_price(product, quantity) do
     case ProductConfig.get(product) do
       nil ->
-        0
+        Decimal.new(0)
 
       config ->
         PricingStrategy.calculate(
@@ -42,10 +44,5 @@ defmodule Checkout do
           config.options
         )
     end
-  end
-
-  @doc false
-  defp pennies_to_pounds(pennies) do
-    pennies / 100
   end
 end

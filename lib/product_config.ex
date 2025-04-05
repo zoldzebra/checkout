@@ -12,23 +12,23 @@ defmodule ProductConfig do
   ## Returns
     A map of product codes to their configuration maps
   """
-  @spec all() :: %{atom() => %{base_price: number(), strategy: atom(), options: keyword()}}
+  @spec all() :: %{atom() => %{base_price: Decimal.t(), strategy: atom(), options: keyword()}}
   def all do
     %{
       GR1: %{
-        base_price: 311,
+        base_price: Decimal.new("3.11"),
         strategy: :buy_one_get_one_free,
         options: []
       },
       SR1: %{
-        base_price: 500,
+        base_price: Decimal.new("5.00"),
         strategy: :bulk_discount,
-        options: [min_quantity: 3, discounted_price: 450]
+        options: [min_quantity: 3, discounted_price: Decimal.new("4.50")]
       },
       CF1: %{
-        base_price: 1123,
+        base_price: Decimal.new("11.23"),
         strategy: :bulk_discount,
-        options: [min_quantity: 3, discount_percentage: 2 / 3]
+        options: [min_quantity: 3, discount_percentage: Decimal.from_float(2 / 3)]
       }
     }
   end

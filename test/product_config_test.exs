@@ -1,6 +1,8 @@
 defmodule ProductConfigTest do
   use ExUnit.Case
 
+  require Decimal
+
   describe "all/0" do
     test "returns a map of product configurations" do
       products = ProductConfig.all()
@@ -14,7 +16,7 @@ defmodule ProductConfigTest do
         assert Map.has_key?(config, :base_price)
         assert Map.has_key?(config, :strategy)
         assert Map.has_key?(config, :options)
-        assert is_number(config.base_price)
+        assert Decimal.is_decimal(config.base_price)
         assert is_atom(config.strategy)
         assert is_list(config.options)
       end)
@@ -31,19 +33,27 @@ defmodule ProductConfigTest do
     test "products have correct configuration" do
       products = ProductConfig.all()
 
-      assert products[:GR1].base_price == 311
+      assert Decimal.equal?(products[:GR1].base_price, Decimal.new("3.11"))
       assert products[:GR1].strategy == :buy_one_get_one_free
       assert products[:GR1].options == []
 
-      assert products[:SR1].base_price == 500
+      assert Decimal.equal?(products[:SR1].base_price, Decimal.new("5.00"))
       assert products[:SR1].strategy == :bulk_discount
       assert Keyword.get(products[:SR1].options, :min_quantity) == 3
-      assert Keyword.get(products[:SR1].options, :discounted_price) == 450
 
-      assert products[:CF1].base_price == 1123
+      assert Decimal.equal?(
+               Keyword.get(products[:SR1].options, :discounted_price),
+               Decimal.new("4.50")
+             )
+
+      assert Decimal.equal?(products[:CF1].base_price, Decimal.new("11.23"))
       assert products[:CF1].strategy == :bulk_discount
       assert Keyword.get(products[:CF1].options, :min_quantity) == 3
-      assert Keyword.get(products[:CF1].options, :discount_percentage) == 2 / 3
+
+      assert Decimal.equal?(
+               Keyword.get(products[:CF1].options, :discount_percentage),
+               Decimal.from_float(2 / 3)
+             )
     end
   end
 
@@ -52,7 +62,7 @@ defmodule ProductConfigTest do
       config = ProductConfig.get(:GR1)
 
       assert is_map(config)
-      assert config.base_price == 311
+      assert Decimal.equal?(config.base_price, Decimal.new("3.11"))
       assert config.strategy == :buy_one_get_one_free
     end
 
