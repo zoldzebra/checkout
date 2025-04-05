@@ -5,20 +5,7 @@ defmodule Checkout do
   """
 
   alias PricingStrategy
-
-  # Base product prices in pennies (to prevent floating point precision issues)
-  @base_prices %{
-    GR1: 311,
-    SR1: 500,
-    CF1: 1123
-  }
-
-  # Pricing strategy configuration
-  @pricing_strategies %{
-    GR1: {:buy_one_get_one_free, []},
-    SR1: {:bulk_discount, [min_quantity: 3, discounted_price: 450]},
-    CF1: {:bulk_discount, [min_quantity: 3, discount_percentage: 2 / 3]}
-  }
+  alias ProductConfig
 
   @doc """
   Calculates the total price for a list of products.
@@ -28,7 +15,7 @@ defmodule Checkout do
 
   def checkout(products) do
     products
-    |> Enum.filter(&(&1 in Map.keys(@base_prices)))
+    |> Enum.filter(&ProductConfig.exists?/1)
     |> Enum.frequencies()
     |> calculate_total_price()
     |> pennies_to_pounds()
@@ -43,14 +30,17 @@ defmodule Checkout do
 
   @doc false
   defp calculate_product_price(product, quantity) do
-    base_price = @base_prices[product]
-
-    case @pricing_strategies[product] do
-      {strategy, options} ->
-        PricingStrategy.calculate(strategy, quantity, base_price, options)
-
+    case ProductConfig.get(product) do
       nil ->
-        PricingStrategy.calculate(:default, quantity, base_price, [])
+        0
+
+      config ->
+        PricingStrategy.calculate(
+          config.strategy,
+          quantity,
+          config.base_price,
+          config.options
+        )
     end
   end
 
