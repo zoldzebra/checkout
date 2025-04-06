@@ -11,6 +11,7 @@ defmodule Checkout do
   Calculates the total price for a list of products.
   Returns the total as a float with 2 decimal places.
   """
+  @spec checkout([atom()]) :: float()
   def checkout([]), do: 0.00
 
   def checkout(products) do
@@ -21,6 +22,7 @@ defmodule Checkout do
   end
 
   @doc false
+  @spec calculate_total_price(map()) :: float()
   defp calculate_total_price(product_quantities) do
     Enum.reduce(product_quantities, Decimal.new(0), fn {product, quantity}, total ->
       product_price = calculate_product_price(product, quantity)
@@ -31,6 +33,7 @@ defmodule Checkout do
   end
 
   @doc false
+  @spec calculate_product_price(atom(), integer()) :: Decimal.t()
   defp calculate_product_price(product, quantity) do
     case ProductConfig.get(product) do
       nil ->
